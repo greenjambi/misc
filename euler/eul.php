@@ -11,26 +11,39 @@ function sortAndNormalize(&$tri) {
 	$tri[0] = 1;
 }
 
-
+$totCnt = 0;
 $abd_pairs = array();
 for ($b = 2; $b < 100; $b++) {
 	echo "Checking b = $b\n";
 	for ($d=2; $d <= $b && $d + $b < 100; $d++) {
-
+		if($d%2!=0 && $b%2!=0 ) {
+			if ($d!=$b) {
+				continue;
+			}
+		}
 ///////////
 //echo " p was $p \n";
 ///////////////
-
-		for ($a=1; $a < $b && $a < $d; $a++ ) {
+		$ceil_min_b_d = ceil((($b < $d) ? $b : $d)/2);
+		for ($a=$ceil_min_b_d; $a < $b && $a < $d; $a++ ) {
+			if($d%2==0 || $b%2==0 ) {
+				if ($a%2!=0) {
+					continue;
+				}
+			}
 
 			if (in_array("$a,$b,$d", $abd_pairs)) {
 			//echo "found duplicate";
 				continue;
 			}
 
-
-			for ($p=1; $p < $a  && !(in_array("$a,$b,$d", $abd_pairs)) ; $p++) {
+list($p_start, $p_end) = ($a % 2 == 0 ) ? array($a/2,0) : array($a-1,floor($a/2)) ; 
+			for ($p=$p_start; $p > $p_end  && !(in_array("$a,$b,$d", $abd_pairs)) ; $p--) {
 				$px = $p; $py = $a - $p ;
+//				if ($py % $px != 0 ) {
+//					continue;
+//				}
+$totCnt++;
 				$CDsq = pow(($d-$a),2);
 				$DPsq = pow($px,2) + pow($d-$py,2);
 				$CPsq = pow($px,2) + pow($a - $py,2);
@@ -56,11 +69,12 @@ for ($b = 2; $b < 100; $b++) {
 				if ($tri_1 == $tri_2 && $tri_2 == $tri_3) {
 
 					$fp = fopen('results/Result_all_points.txt', 'a');
-					fwrite($fp, "P($px,$py) | (a,b,d) = ($a,$b,$d) | tri1 =  (". implode(",",$tri_1). ") " .
-					" tri2 = (". implode(",",$tri_2). ") " .
-					" tri3 = (". implode(",",$tri_3). ")" .
+					fwrite($fp, "($px,$py,$a,$b,$d), \n");
+					fclose($fp);
 
-					" \n");
+
+					$fp = fopen('results/P_points.txt', 'a');
+					fwrite($fp, "$px $py\n");
 					fclose($fp);
 
 
@@ -74,10 +88,11 @@ for ($b = 2; $b < 100; $b++) {
 					}
 					fclose ($fp);
 
+					break;
 				}
 			}
 		}
 	}
 }
 
-echo "\nDone\n";
+echo "\nDone total count = $totCnt \n";
