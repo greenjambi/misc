@@ -1,36 +1,92 @@
 <?php
 ob_end_flush();
-function sortAndNormalize(&$tri) {
+
+
+function sortAndNormalize(&$tri, $triPrev1=null, $triPrev2=null) {
 	sort($tri,SORT_NUMERIC);
 	foreach ($tri as $k => $sides ) {
 		if ($k == 0) {
 			continue;
 		}
 		$tri[$k] = $tri[$k]/$tri[0];
+		if ($triPrev1 != null) {
+			if ($tri[$k] != $triPrev1[$k]) {
+				return false;
+			}
+		}
+
+		if ($triPrev2 != null) {
+			if ($tri[$k] != $triPrev2[$k]) {
+				return false;
+			}
+		}
+
 	}
 	$tri[0] = 1;
+	return true;
 }
 
 
 $abd_pairs = array();
 for ($b = 2; $b < 100; $b++) {
 	echo "Checking b = $b\n";
-	for ($d=2; $d <= $b && $d + $b < 100; $d++) {
 
+	for ($d=$b; $d + $b < 100; $d++) {
+		if($d%2!=0 && $b%2!=0 ) {
+			if ($d!=$b) {
+				continue;
+			}
+		}
 ///////////
 //echo " p was $p \n";
 ///////////////
-
-		for ($a=1; $a < $b && $a < $d; $a++ ) {
+		$ceil_min_b_d = ceil((($b < $d) ? $b : $d)/2);
+		for ($a=$ceil_min_b_d; $a < $b && $a < $d; $a++ ) {
+			if($d%2==0 || $b%2==0 ) {
+				if ($a%2!=0) {
+					continue;
+				}
+			}
+			$bolIsMultipleOfExisting = false;
 
 			if (in_array("$a,$b,$d", $abd_pairs)) {
 			//echo "found duplicate";
 				continue;
 			}
 
-
-			for ($p=1; $p < $a  && !(in_array("$a,$b,$d", $abd_pairs)) ; $p++) {
+			list($p_start, $p_end) = ($a % 2 == 0 ) ? array($a/2,0) : array($a-1,floor($a/2)) ; 
+			for ($p=$p_start; $p > $p_end  && !(in_array("$a,$b,$d", $abd_pairs)) ; $p--) {
 				$px = $p; $py = $a - $p ;
+//				if ($py % $px != 0 ) {
+//					continue;
+//				}
+
+$success = false;
+// Checking if the center angle is 135 degress
+$alpha = atan($px/($d-$py))/ pi() * 180;
+if ($alpha >= 45) {continue;}
+
+$beta = atan($py/($b-$px)) / pi() * 180;
+if (($alpha + $beta) != 45 ) {	continue;}
+
+$theta = atan($b/$d) / pi() * 180;
+if (($theta - $alpha) == $alpha || ($theta - $alpha) == $beta ) {
+	$success = true;
+} else {
+	continue;
+}
+
+$totCnt++;
+
+
+
+
+
+
+
+
+//
+/*
 				$CDsq = pow(($d-$a),2);
 				$DPsq = pow($px,2) + pow($d-$py,2);
 				$CPsq = pow($px,2) + pow($a - $py,2);
@@ -46,14 +102,21 @@ for ($b = 2; $b < 100; $b++) {
 				
 				try {
 
-					sortAndNormalize($tri_1);
-					sortAndNormalize($tri_2);
-					sortAndNormalize($tri_3);
+					if (sortAndNormalize($tri_1) == false) {
+						continue;
+					}
+					if (sortAndNormalize($tri_2 , $tri_1 ) == false) {
+						continue;
+					}
+					if (sortAndNormalize($tri_3 , $tri_1, $tri_2 ) == false) {
+						continue;
+					}
 				} catch (Exception $e) {
 					echo "exception ".$e->getMessage()." $a,$b,$d";
 				}
-
-				if ($tri_1 == $tri_2 && $tri_2 == $tri_3) {
+*/
+//				if (($tri_1 == $tri_2 && $tri_2 == $tri_3) || $bolIsMultipleOfExisting) {
+				if ($success) { 
 
 					$fp = fopen('results/Result_all_points.txt', 'a');
 					fwrite($fp, "P($px,$py) | (a,b,d) = ($a,$b,$d) | tri1 =  (". implode(",",$tri_1). ") " .
