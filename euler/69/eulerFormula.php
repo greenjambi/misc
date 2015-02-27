@@ -1,62 +1,35 @@
 <?php
 
+require_once 'phiN.method.php';
 
-function phiN($n)
-{
-
-    $p = array();
-
-    $i = gmp_strval(gmp_nextprime(1));
-    while ($i < $n) {
-
-        if ($n % $i == 0) {
-            $p[] = $i;
-        }
-
-        $i = gmp_strval(gmp_nextprime($i));
-    }
-
-    $piP = $n;
-    foreach ($p as $i) {
-        $piP = bcmul($piP , bcdiv(($i - 1 ) , $i));
-
-    }
-
-    return $piP;
-
-}
-
+////////////////////////////
+// Start the main program here.
+////////////////////////////
 $nextPrime = gmp_strval(gmp_nextprime(1));
 
-$largestPiByN = array('n' => 0, 'phiByN' => 0);
+$limit = isset($argv[1]) ? $argv[1] : 100;
+$largestNByPhi = array('n' => 0, 'nByPhi' => 0);
 
-for ($n=1;$n<10;$n++) {
+// Iterate through each n
+for ($n=15;$n<$limit;$n++) {
 
-    if ($n == $nextPrime) {
-        $nextPrime = gmp_strval(gmp_nextprime($n));
-        continue;
-    }
+    $nByPhi = nByPhiN($n);
 
-    $phiByN =  bcdiv(phiN($n), $n);
+//    echo "\n n:$n | Phi: $phi | nByPhi : $nByPhiBy";
+    echo ".";
 
-//    if ($n % 100000 == 0) {
-    echo "\n i:$n : $phiByN";
+    if ($largestNByPhi['nByPhi'] < $nByPhi ) {
 
-//    }
-
-    if ($largestPiByN['phiByN'] < $phiByN ) {
-
-        $largestPiByN = array(
+        $largestNByPhi = [
             'n' => $n,
-            'phiByN' => $phiByN
-        );
+            'nByPhi' => $nByPhi
+        ];
+
+        echo "\n Found the next largest nByPhi n:$n | nByPhi : $nByPhi";
     }
-
-
-
 }
 
-print_r($largestPiByN);
+echo "\n"; print_r($largestNByPhi);
 
 
 echo "\n";
